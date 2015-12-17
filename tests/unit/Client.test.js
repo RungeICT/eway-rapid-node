@@ -36,6 +36,7 @@ test('Client', function (t) {
     var postAccessCodeSharedStub = sinon.stub();
     postAccessCodeSharedStub.withArgs(request.serviceResponsiveSharedPageCaptureOnTokenOn).returns(Promise.resolve(response.postAccessCodeSharedCaptureOnTokenOn));
     postAccessCodeSharedStub.withArgs(request.serviceResponsiveSharedPageCaptureOnTokenOff).returns(Promise.resolve(response.postAccessCodeSharedCaptureOnTokenOff));
+    postAccessCodeSharedStub.withArgs(request.serviceResponsiveSharedPageSaveCustomer).returns(Promise.resolve(response.postAccessCodeSharedCaptureOnTokenOff));
     postAccessCodeSharedStub.withArgs(request.serviceResponsiveSharedPageCaptureOff).returns(Promise.resolve(response.postAccessCodeSharedCaptureOff));
     postAccessCodeSharedStub.withArgs(request.serviceCreateCustomerResponsiveShared).returns(Promise.resolve(response.postAccessCodeSharedCreateCustomer));
     postAccessCodeSharedStub.withArgs(request.serviceUpdateCustomerResponsiveShared).returns(Promise.resolve(response.postAccessCodeSharedUpdateCustomer));
@@ -44,6 +45,7 @@ test('Client', function (t) {
     var postAccessCodeStub = sinon.stub();
     postAccessCodeStub.withArgs(request.serviceTransparentRedirectCaptureOnTokenOn).returns(Promise.resolve(response.postAccessCodeCaptureOnTokenOn));
     postAccessCodeStub.withArgs(request.serviceTransparentRedirectCaptureOnTokenOff).returns(Promise.resolve(response.postAccessCodeCaptureOnTokenOff));
+    postAccessCodeStub.withArgs(request.serviceTransparentRedirectSaveCustomer).returns(Promise.resolve(response.postAccessCodeCaptureOnTokenOff));
     postAccessCodeStub.withArgs(request.serviceTransparentRedirectCaptureOff).returns(Promise.resolve(response.postAccessCodeCaptureOff));
     postAccessCodeStub.withArgs(request.serviceCreateCustomerTransparentRedirect).returns(Promise.resolve(response.postAccessCodeCreateCustomer));
     postAccessCodeStub.withArgs(request.serviceUpdateCustomerTransparentRedirect).returns(Promise.resolve(response.postAccessCodeUpdateCustomer));
@@ -63,6 +65,7 @@ test('Client', function (t) {
 
     ServiceMock.postCancelAuthorisation = sinon.stub().withArgs(request.transactionId).returns(Promise.resolve(response.postCancelAuthorisation));
 
+    ServiceMock.getSettlementSearch = sinon.stub().withArgs(request.settlementSearchQueryBasic).returns(Promise.resolve(response.getSettlementSearchBasic));
     /*
      * Inject mocked service
      */
@@ -229,6 +232,10 @@ test('Client', function (t) {
         expected: response.postAccessCodeSharedCaptureOnTokenOff
       },
       {
+        args: [Method.RESPONSIVE_SHARED, request.responsiveSharedPageSaveCustomer],
+        expected: response.postAccessCodeSharedCaptureOnTokenOff
+      },
+      {
         args: [Method.RESPONSIVE_SHARED, request.responsiveSharedPageCaptureOff],
         expected: response.postAccessCodeSharedCaptureOff
       },
@@ -238,6 +245,10 @@ test('Client', function (t) {
       },
       {
         args: [Method.TRANSPARENT_REDIRECT, request.transparentRedirectCaptureOnTokenOff],
+        expected: response.postAccessCodeCaptureOnTokenOff
+      },
+      {
+        args: [Method.TRANSPARENT_REDIRECT, request.transparentRedirectSaveCustomer],
         expected: response.postAccessCodeCaptureOnTokenOff
       },
       {
@@ -540,6 +551,31 @@ test('Client', function (t) {
     fulfilledTestCases.forEach(function (testCase) {
       t.test('should return a fulfilled promise', function (t) {
         return client.cancelTransaction.apply(client, testCase.args)
+          .then(function (response) {
+            t.plan(5);
+            t.ok(response instanceof Model, 'should be an instance of Model');
+            t.ok(typeof response.getErrors === 'function', 'should has method getErrors');
+            t.ok(response.getErrors() instanceof Array, 'should be an Array');
+            t.ok(response.getErrors().length === 0, 'should be empty');
+            t.deepEqual(response.attributes, testCase.expected);
+            return response;
+          })
+          ;
+      });
+    });
+  });
+  t.test('#settlementSearch', function (t) {
+    var client = setup();
+    var fulfilledTestCases = [
+      {
+        args: [request.settlementSearchQueryBasic],
+        expected: response.getSettlementSearchBasic
+      }
+    ];
+
+    fulfilledTestCases.forEach(function (testCase) {
+      t.test('should return a fulfilled promise', function (t) {
+        return client.settlementSearch.apply(client, testCase.args)
           .then(function (response) {
             t.plan(5);
             t.ok(response instanceof Model, 'should be an instance of Model');

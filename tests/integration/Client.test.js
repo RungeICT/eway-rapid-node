@@ -16,6 +16,8 @@ test('Client', function (t) {
 
   var convertToDot = function (object) {
 
+    var result = {};
+
     var convertRecursively = function (object, current) {
       for (var key in object) {
         if (object.hasOwnProperty(key)) {
@@ -29,8 +31,6 @@ test('Client', function (t) {
         }
       }
     };
-
-    var result = {};
     convertRecursively(object);
 
     return result;
@@ -202,5 +202,21 @@ test('Client', function (t) {
       });
     });
   });
-
+  /* Settlement Search */
+  t.test('#settlementSearch()', function (t) {
+    var client = Rapid.createClient(apiKey, apiPassword);
+    [
+      [request.settlementSearchQueryBasic]
+    ].forEach(function (testCase) {
+      t.test('settlement search should return a fulfilled promise', function (t) {
+        return client.settlementSearch.apply(client, testCase)
+          .then(function (response){
+            assertResponseBasic(t, response);
+            assertResponseHasAttribute(t, response, 'SettlementSummaries');
+            assertResponseHasAttribute(t, response, 'SettlementTransactions');
+            return response;
+          });
+      });
+    });
+  });
 });
